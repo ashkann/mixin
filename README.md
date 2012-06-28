@@ -3,7 +3,7 @@ mixin
 
 Tries to implement a mixin composition framework that helps organizing your code using mixins.
 
-Mixin (aka traits, mixin composition) is a mechanism of code reuse that is considered the right version on multiple-inheritance.
+Mixin (aka traits, mixin composition) is a mechanism of code reuse that is considered the right version of multiple-inheritance.
 
 You can reach me at ashkan.kh.nazary@gmail.com
 
