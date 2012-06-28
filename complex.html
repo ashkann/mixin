@@ -1,0 +1,136 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <script type="text/javascript" src="mixin.js"></script>
+    <script type="text/javascript">
+        /**
+         * The base *class* . This is base in the sense that it doesn't depend on anything
+         * external to itself. It doesn't need to be mixed in with anything in order to become
+         * concrete. Rather other traits could be mixed in with `counter` in order to enrich
+         * it or alter it's behaviour.
+         *
+         * But this is not a class really. I say class just to use a familiar terminology.
+         * Rather this is a function that is called whenever a new instance of `counter` is
+         * required (class Closure pattern).
+         *
+         * We are using scoping and closure capabilities of functions to return an interface of
+         * functions ({forward, current}) that close over `counter`'s local variables thus
+         * effectively creating something like a private state. Calling `counter` is like
+         * class instantiation in classical OOP.
+         *
+         * @param {number} initial
+         * @param {number} step
+         * @return {Object} A pack of functions that interface with the hidden `c`
+         */
+        function counter(initial, step) {
+            var c = initial; // private state
+            function     inc() { c += step; } // private helper (kinda like a method)
+
+            // returns the public methods. Kinda like a module or interface if you like.
+            // in code you can't access `c` or `inc()`. Because they are private within
+            // `counter`. You can use `forward` and `current` though since they are returned
+            // from the `counter`.
+            return {
+                forward:function () {
+                    inc(); // can use private helpers
+                    return this.current();
+                },
+                current:function () {
+                    return c; // can access private state
+                }
+            };
+        }
+        /**
+         * Adds Fast Forwarding capabilities into some counter (Notice the use of this.forward() and
+         * this.current() )
+         *
+         * fastForward is not usable on its own since it depends on some forward() and current() to be
+         * present in `this` at call time. It does not override anything enriches the base trait with
+         * a new function(fastForward()), provided the base trait satisfies the requirements (defines
+         * forward() and current()).
+         *
+         * It can be mixed in with *any* object that provides current() and forward() but it is intended
+         * to be mixed in with a `counter` ;)
+         *
+         * @return {Object}
+         */
+        function fastForward() {
+            return {
+                fastForward:function (howManySteps) {
+                    for (var s = 0; s < howManySteps; s++) this.forward();
+                    return this.current();
+                }
+            };
+        }
+        /**
+         * Now this one is rather interesting because it (1) modifies the behaviour of it's base trait and
+         * (2) accepts some initialization input.
+         *
+         * (1) bookmark needs to *override* forward() in order to do it's job. This is easily done as you can see.
+         * Just return the new forward(). You can call the base.forward() with the correct `this` using this.super().
+         * Note that if you call forward() with base (`base.forward()` and not `this.super(base.forward)`, then `this`
+         * is not bound correctly inside base.forward() unless , of course, this is what you want.
+         *
+         * (2) We have to de-couple the two concerns (overriding and parametrization). This results in a function(bookmark)
+         * that accepts initialization and then returns a function that override a base trait (function(base)). Second function
+         * is the one we are familiar to (returns the interface). This second function is closed over `where` and `whatToDo`.
+         * ( courtesy of functional paradigm)
+         *
+         * @param {number} where
+         * @param {function} whatToDo
+         * @return {Function}
+         */
+        function bookmark(where, whatToDo) {
+
+            return function (base) { // second function
+
+                function checkForBookmark() {
+                    if (typeof where === 'number' && this.current() >= where) {
+                        whatToDo.call(this);
+                        where = null;
+                    }
+                }
+
+                return {
+                    forward:function () {
+                        this.super(base.forward);
+                        this.super(checkForBookmark); // I just want `this` to be bound correctly, nothing *super* actually
+                    }
+                };
+            }
+        }
+
+        // example 1
+        // counter() can be used on its own. It provides some basic counter functionality. Nothing special really
+        var a=counter(0,1);
+        a.forward();
+        console.log(a.current()); // 1
+
+
+        // Example 2
+        // Now what if you want to forward 10 steps? Panic not since we can mixin fastForward
+        var b=counter(0,1).mixin(fastForward);
+        b.fastForward(20);
+        console.log(b.current());
+
+
+        // Example 3
+        // Now it looks interesting enough already but I want something special to happen when the counter reaches 3 and 5.
+        // We can mixin bookmark, and that we can do twice (once for 3 and once for 5) and we can pass the `something special to happen`
+        // part as the second argument to bookmark(). Notice that `this` is correctly bound inside the bookmark callbacks.
+        counter(0, 1).
+                mixin(bookmark(3, function () {
+            console.log('Got ' + this.current())
+        })).
+                mixin(bookmark(5, function () {
+            console.log('Another ' + this.current())
+        })).
+                mixin(fastForward).fastForward(5);
+
+    </script>
+</head>
+<body>
+
+</body>
+</html>

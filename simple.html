@@ -1,0 +1,43 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <script type="text/javascript" src="mixin.js"></script>
+    <script type="text/javascript">
+        function greeter(name) {
+            return {
+                greet:function () {
+                    return name;
+                }
+            }
+        }
+
+        function title(t) {
+            return function (g) {
+                return {
+                    greet:function () {
+                        return t + ' ' + this.super(g.greet)
+                    }
+                }
+            }
+        }
+
+        function hello(g) {
+            return {
+                greet:function () {
+                    return 'Hi ' + this.super(g.greet);
+                }
+            }
+        }
+
+        var a = greeter('Ashkan').mixin(title('Mr.')).mixin(hello); // Hi Mr. Ashkan
+        var b = greeter('Marjan').mixin(hello).mixin(title('Mrs.')); // Mrs. Hi Marjan
+
+        alert(a.greet());
+        alert(b.greet());
+    </script>
+</head>
+<body>
+
+</body>
+</html>
