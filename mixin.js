@@ -125,5 +125,7 @@ Object.method('mixin',function(mixin){
 });
 
 Object.method('super',function(f){
-    return f.call(this);
+    var a=[];
+    for(var i=1; i<arguments.length; i++) a.push(arguments[i]);
+    return f.apply(this,a);
 });

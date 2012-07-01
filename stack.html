@@ -1,0 +1,51 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <script type="text/javascript" src="mixin.js"></script>
+    <script type="text/javascript">
+
+        function stack() {
+            var q = [];
+            return {
+                push:function (i) {
+                    q.push(i);
+                },
+                pop:function () {
+                    return q.pop();
+                }
+            }
+        }
+
+        function incStack(base) {
+            return {
+                push:function (i) {
+                    this.super(base.push, i + 1);
+                }
+            }
+        }
+
+        function filterStack(base) {
+            return {
+                push:function (i) {
+                    if (i >= 0) this.super(base.push, i);
+                }
+            }
+        }
+
+        var q1 = stack().mixin(filterStack).mixin(incStack);
+        q1.push(-1);
+        q1.push(1);
+        console.log(q1.pop(), q1.pop()); // 2, 0
+
+        var q2 = stack().mixin(incStack).mixin(filterStack);
+        q2.push(-1);
+        q2.push(0);
+        console.log(q2.pop(), q2.pop()); // 1, undefined
+
+    </script>
+</head>
+<body>
+This example demonstrates the Stackable Modifications. It means the order of mixing in effects the behavioure of the resultant object.
+</body>
+</html>
